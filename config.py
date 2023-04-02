@@ -1,6 +1,6 @@
 import yaml
 import logging
-
+import os
 LOG = logging.getLogger(__name__)
 
 
@@ -12,15 +12,15 @@ class BotConfig:
         """
         self.path_config_file = path_config_file
         # config.yaml
-        self.tg_chat_id = ""
-        self.tg_bot_token = ""
-        self.tg_bot_name = ""
+        self.tg_chat_id = os.environ.get('TG_CHAT_ID',"")
+        self.tg_bot_token = os.environ.get('TG_BOT_TOKEN',"")
+        self.tg_bot_name = os.environ.get('TG_BOT_NAME',"")
         self.use_proxy = "0"
         self.use_proxy_dmm = "0"
         self.proxy_addr = ""
-        self.use_pikpak = "0"
-        self.tg_api_id = ""
-        self.tg_api_hash = ""
+        self.use_pikpak = "1"
+        self.tg_api_id = os.environ.get('TG_API_ID',"")
+        self.tg_api_hash = os.environ.get('TG_API_HASH',"")
         self.use_cache = "0"
         self.redis_host = ""
         self.redis_port = ""
