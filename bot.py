@@ -17,7 +17,6 @@ from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, InputMedia
 from logger import Logger
 from config import BotConfig
 from database import BotFileDb, BotCacheDb
-import yaml
 
 # TG 地址
 BASE_URL_TG = "https://t.me"
@@ -72,9 +71,6 @@ BOT_CMDS = {
 
 if not os.path.exists(PATH_ROOT):
     os.makedirs(PATH_ROOT)
-myyml = {'tg_bot_token': os.getenv('TG_BOT_TOKEN'),'tg_chat_id': os.getenv('TG_CHAT_ID'),'use_proxy':0,'use_proxy_dmm':0,'proxy_addr':'','tg_api_id':'','tg_api_hash':'','use_pikpak':0,'use_cache':0,'redis_host':'','redis_port':''}
-with open(PATH_CONFIG_FILE, 'w') as f:
-    f.write(yaml.dump(myyml))
 LOG = Logger(path_log_file=PATH_LOG_FILE).logger
 BOT_CFG = BotConfig(PATH_CONFIG_FILE)
 apihelper.proxy = BOT_CFG.proxy_json
