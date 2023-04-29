@@ -1,34 +1,34 @@
 # -*- coding: UTF-8 -*-
-import asyncio
 import concurrent.futures
-import logging
 import math
 import os
 import re
-import json
 import string
 import typing
-import threading
 import random
-
 import jvav
+import asyncio
 import langdetect
 import lxml  # for bs4
 import telebot
 from pyrogram import Client
 from telebot import apihelper, types
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
-
+from logger import Logger
 from config import BotConfig
 from database import BotFileDb, BotCacheDb
 
 
+# TG 地址
+BASE_URL_TG = "https://t.me"
+# MissAv 地址
+BASE_URL_MISS_AV = "https://missav.com"
 # 项目地址
 PROJECT_ADDRESS = "https://github.com/akynazh/tg-jav-bot"
 # 默认使用官方机器人: https://t.me/PikPak6_Bot
 PIKPAK_BOT_NAME = "PikPak6_Bot"
 # 联系作者
-CONTACT_AUTHOR = "https://t.me/jackbryant286"
+CONTACT_AUTHOR = f"{BASE_URL_TG}/jackbryant286"
 # 文件存储目录位置
 PATH_ROOT = f'{os.path.expanduser("~")}/.tg_jav_bot'
 # 日志文件位置
@@ -39,33 +39,25 @@ PATH_RECORD_FILE = f"{PATH_ROOT}/record.json"
 PATH_SESSION_FILE = f"{PATH_ROOT}/my_account"
 # 配置文件位置
 PATH_CONFIG_FILE = f"{PATH_ROOT}/config.yaml"
-# MissAv 地址
-BASE_URL_MISS_AV = "https://missav.com"
-# 拦截消息
-MSG_INTERCEPT = f'该机器人仅供私人使用, 如需使用请自行部署: <a href="{PROJECT_ADDRESS}">项目地址</a>'
 # 帮助消息
-MSG_HELP = f"""发送给机器人一条含有番号的消息, 机器人会匹配并搜索消息中所有符合<b>“字母-数字”</b>格式的番号, 其它格式的番号可通过<code>/av</code>命令查找。
+MSG_HELP = f"""发送给机器人一条含有番号的消息, 机器人会匹配并搜索消息中所有符合<b>“字母-数字”(主要番号格式), “fc2-数字”(FC2)</b>格式的番号, 其它格式的番号可通过 <code>/av</code> 命令查找。
 
 /help  查看指令帮助
-
 /stars  查看收藏的演员
-
 /avs  查看收藏的番号
-
 /nice  随机获取一部高分 av
-
 /new  随机获取一部最新 av
-
 /rank  获取 DMM 女优排行榜
-
 /record  获取收藏记录文件
+<code>/star</code>  后接空格和演员名称可搜索该演员
+<code>/av</code>  后接空格和番号可搜索该番号
 
-<code>/star</code>  后接演员名称可搜索该演员
-
-<code>/av</code>  后接番号可搜索该番号
+示例1: 直接发送含番号消息: 若该消息中含有 “<code>ipx-366</code>”, “<code>fc2-880652</code>” 这样的字符串, 机器人会检测到它们并进行搜索
+示例2: 日/中文精准搜索演员: 发送 <code>/star 桜空もも</code> 可以搜索到樱空桃
+示例3: 模糊搜索演员: 发送 <code>/star 三上</code> 可以搜索到三上悠亚
+示例4: <code>/av</code> 搜索加勒比番号: 发送 <code>/av 091318_01</code>
 """
-# 机器人指令
-BOT_CMD = {
+BOT_CMDS = {
     "help": "查看指令帮助",
     "stars": "查看收藏的演员",
     "avs": "查看收藏的番号",
@@ -76,6 +68,26 @@ BOT_CMD = {
     "star": "后接演员名称可搜索该演员",
     "av": "后接番号可搜索该番号",
 }
+
+
+if not os.path.exists(PATH_ROOT):
+    os.makedirs(PATH_ROOT)
+LOG = Logger(path_log_file=PATH_LOG_FILE).logger
+BOT_CFG = BotConfig(PATH_CONFIG_FILE)
+apihelper.proxy = BOT_CFG.proxy_json
+BOT = telebot.TeleBot(BOT_CFG.tg_bot_token)
+BOT_DB = BotFileDb(PATH_RECORD_FILE)
+BOT_CACHE_DB = BotCacheDb(
+    host=BOT_CFG.redis_host, port=BOT_CFG.redis_port, use_cache=BOT_CFG.use_cache
+)
+BASE_UTIL = jvav.BaseUtil(BOT_CFG.proxy_addr)
+DMM_UTIL = jvav.DmmUtil(BOT_CFG.proxy_addr_dmm)
+JAVBUS_UTIL = jvav.JavBusUtil(BOT_CFG.proxy_addr)
+JAVLIB_UTIL = jvav.JavLibUtil(BOT_CFG.proxy_addr)
+SUKEBEI_UTIL = jvav.SukebeiUtil(BOT_CFG.proxy_addr)
+TRANS_UTIL = jvav.TransUtil(BOT_CFG.proxy_addr)
+WIKI_UTIL = jvav.WikiUtil(BOT_CFG.proxy_addr)
+AVGLE_UTIL = jvav.AvgleUtil(BOT_CFG.proxy_addr)
 
 
 class BotKey:
@@ -102,46 +114,6 @@ class BotKey:
     KEY_UNDO_RECORD_STAR_BY_STAR_NAME_ID = "k3_6"
     KEY_UNDO_RECORD_AV_BY_ID = "k3_7"
     KEY_DEL_AV_CACHE = "k4_1"
-
-
-class Logger:
-    """日志记录器"""
-
-    def __init__(self, log_level):
-        """初始化日志记录器
-
-        :param _type_ log_level: 记录级别
-        """
-        self.logger = logging.getLogger()
-        formatter = logging.Formatter("[%(asctime)s] %(levelname)s: %(message)s")
-        file_handler = logging.FileHandler(PATH_LOG_FILE)
-        file_handler.setFormatter(formatter)
-        stream_handler = logging.StreamHandler()
-        stream_handler.setFormatter(formatter)
-        self.logger.addHandler(file_handler)
-        self.logger.addHandler(stream_handler)
-        self.logger.setLevel(log_level)
-
-
-if not os.path.exists(PATH_ROOT):
-    os.makedirs(PATH_ROOT)
-LOG = Logger(log_level=logging.INFO).logger
-BOT_CFG = BotConfig(PATH_CONFIG_FILE)
-BOT_CFG.load_config()
-apihelper.proxy = BOT_CFG.proxy_json
-BOT = telebot.TeleBot(BOT_CFG.tg_bot_token)
-BOT_CACHE_DB = BotCacheDb(
-    host=BOT_CFG.redis_host, port=BOT_CFG.redis_port, use_cache=BOT_CFG.use_cache
-)
-BOT_DB = BotFileDb(PATH_RECORD_FILE)
-BASE_UTIL = jvav.BaseUtil(BOT_CFG.proxy_addr)
-DMM_UTIL = jvav.DmmUtil(BOT_CFG.proxy_addr_dmm)
-JAVBUS_UTIL = jvav.JavBusUtil(BOT_CFG.proxy_addr)
-JAVLIB_UTIL = jvav.JavLibUtil(BOT_CFG.proxy_addr)
-SUKEBEI_UTIL = jvav.SukebeiUtil(BOT_CFG.proxy_addr)
-TRANS_UTIL = jvav.TransUtil(BOT_CFG.proxy_addr)
-WIKI_UTIL = jvav.WikiUtil(BOT_CFG.proxy_addr)
-AVGLE_UTIL = jvav.AvgleUtil(BOT_CFG.proxy_addr)
 
 
 class BotUtils:
@@ -682,7 +654,7 @@ class BotUtils:
             msg += f"""【标签】{av_tags}
 """
         # 其它
-        msg += f"""【其它】<a href="https://t.me/{PIKPAK_BOT_NAME}">Pikpak</a> | <a href="{PROJECT_ADDRESS}">项目</a> | <a href="{CONTACT_AUTHOR}">作者</a>
+        msg += f"""【其它】<a href="{BASE_URL_TG}/{PIKPAK_BOT_NAME}">Pikpak</a> | <a href="{PROJECT_ADDRESS}">项目</a> | <a href="{CONTACT_AUTHOR}">作者</a>
 """
         # 磁链
         magnet_send_to_pikpak = ""
@@ -779,7 +751,7 @@ class BotUtils:
             except Exception:  # 少数图片可能没法发送
                 self.send_msg(msg=msg, markup=markup)
         # 发给pikpak
-        if BOT_CFG.use_pikpak == 1 and magnet_send_to_pikpak != "" and send_to_pikpak:
+        if BOT_CFG.use_pikpak == "1" and magnet_send_to_pikpak != "" and send_to_pikpak:
             self.send_magnet_to_pikpak(magnet_send_to_pikpak, av_id)
 
     def send_magnet_to_pikpak(self, magnet: str, id: str):
@@ -789,7 +761,7 @@ class BotUtils:
         :param str id: 磁链对应的番号
         """
         name = PIKPAK_BOT_NAME
-        op_send_magnet_to_pikpak = f"发送番号 {id} 的磁链 A 到 pikpak: <code>{magnet}</code>"
+        op_send_magnet_to_pikpak = f"发送番号 {id} 的磁链 A: <code>{magnet}</code> 到 pikpak"
         if self.send_msg_to_pikpak(magnet):
             self.send_msg_success_op(op_send_magnet_to_pikpak)
         else:
@@ -835,6 +807,9 @@ class BotUtils:
         :param str id: 番号
         :param str type: 0 预览视频 | 1 完整视频
         """
+        id = id.lower()
+        if id.find("fc2") != -1 and id.find("ppv") == -1:
+            id = id.replace("fc2", "fc2-ppv")
         if type == 0:
             pv = BOT_CACHE_DB.get_cache(key=id, type=BotCacheDb.TYPE_PV)
             if not pv:
@@ -909,7 +884,7 @@ Avgle 视频地址: {video}
 """
             )
 
-    def search_star_by_name(self, star_name: str):
+    def search_star_by_name(self, star_name: str) -> bool:
         """根据演员名称搜索演员
 
         :param str star_name: 演员名称
@@ -933,9 +908,8 @@ Avgle 视频地址: {video}
         star_name = star["star_name"]
         if BOT_DB.check_star_exists_by_id(star_id=star_id):
             self.get_star_detail_record_by_name_id(star_name=star_name, star_id=star_id)
-            return
+            return True
         markup = InlineKeyboardMarkup()
-
         markup.row(
             InlineKeyboardButton(
                 text="随机 av",
@@ -961,6 +935,7 @@ Avgle 视频地址: {video}
             msg=f'<code>{star_name}</code> | <a href="{star_wiki}">Wiki</a> | <a href="{JAVBUS_UTIL.BASE_URL_SEARCH_BY_STAR_NAME}/{star_name}">Javbus</a>',
             markup=markup,
         )
+        return True
 
     def get_top_stars(self, page=1):
         """根据页数获取 DMM 女优排行榜, 每页 20 位女优
@@ -996,17 +971,21 @@ Avgle 视频地址: {video}
         :param _type_ msg: 消息
         :return any: 如果失败则为 None
         """
-        try:
-            with Client(
-                name=PATH_SESSION_FILE,
-                api_id=BOT_CFG.tg_api_id,
-                api_hash=BOT_CFG.tg_api_hash,
-                proxy=BOT_CFG.proxy_json_pikpak,
-            ) as app:
-                return app.send_message(PIKPAK_BOT_NAME, msg)
-        except Exception as e:
-            LOG.error(f"fail to send message to pikpak: {e}")
-            return None
+
+        async def send():
+            try:
+                async with Client(
+                    name=PATH_SESSION_FILE,
+                    api_id=BOT_CFG.tg_api_id,
+                    api_hash=BOT_CFG.tg_api_hash,
+                    proxy=BOT_CFG.proxy_json_pikpak,
+                ) as app:
+                    return await app.send_message(PIKPAK_BOT_NAME, msg)
+            except Exception as e:
+                LOG.error(f"无法将消息发送到 pikpak: {e}")
+                return None
+
+        return asyncio.run(send())
 
     def get_more_magnets_by_id(self, id: str):
         """根据番号获取更多磁链
@@ -1100,32 +1079,6 @@ Avgle 视频地址: {video}
         return star_name
 
 
-def test():
-    """用于测试"""
-    return
-
-
-def get_msg_param(msg: str) -> str:
-    """获取消息参数
-
-    :param str msg: 消息文本, 已经通过 strip() 函数将两旁空白清除
-    :return str: 消息参数(保证只有一个)
-    """
-    msgs = msg.split(" ", 1)  # 划分为两部分
-    if len(msgs) > 1:  # 有参数
-        param = "".join(msgs[1].split())  # 去除参数所有空白
-        if param != "":
-            return param
-
-
-def set_command():
-    """设置机器人命令"""
-    cmds = []
-    for cmd in BOT_CMD:
-        cmds.append(types.BotCommand(cmd, BOT_CMD[cmd]))
-    BOT.set_my_commands(cmds)
-
-
 def handle_callback(call):
     """处理回调
 
@@ -1133,7 +1086,8 @@ def handle_callback(call):
     """
     # 回显 typing...
     bot_utils = BotUtils()
-    threading.Thread(target=bot_utils.send_action_typing).start()
+    bot_utils.send_action_typing()
+    LOG.info(f"处理回调: {call.data}")
     # 提取回调内容
     s = call.data.rfind(":")
     content = call.data[:s]
@@ -1214,7 +1168,15 @@ def handle_callback(call):
         else:
             bot_utils.send_msg_fail_reason_op(reason="文件解析出错", op=op_undo_record_star)
     elif key_type == BotKey.KEY_SEARCH_STAR_BY_NAME:
-        bot_utils.search_star_by_name(content)
+        star_name = content
+        star_name_alias = ""
+        idx_alias = star_name.find("（")
+        if idx_alias != -1:
+            star_name_alias = star_name[idx_alias + 1 : -1]
+            star_name = star_name[:idx_alias]
+        if not bot_utils.search_star_by_name(star_name) and star_name_alias != "":
+            bot_utils.send_msg(f"尝试搜索演员{star_name}的别名{star_name_alias}......")
+            bot_utils.search_star_by_name(star_name_alias)
     elif key_type == BotKey.KEY_GET_TOP_STARS:
         bot_utils.get_top_stars(page=int(content))
     elif key_type == BotKey.KEY_GET_NICE_AVS_BY_STAR_NAME:
@@ -1260,14 +1222,14 @@ def handle_message(message):
     """
     # 回显 typing...
     bot_utils = BotUtils()
-    threading.Thread(target=bot_utils.send_action_typing).start()
+    bot_utils.send_action_typing()
     # 拦截请求
     chat_id = str(message.chat.id)
     if chat_id.lower() != BOT_CFG.tg_chat_id.lower():
         LOG.info(f"拦截到非目标用户请求, id: {chat_id}")
         BOT.send_message(
             chat_id=chat_id,
-            text=MSG_INTERCEPT,
+            text=f'该机器人仅供私人使用, 如需使用请自行部署: <a href="{PROJECT_ADDRESS}">项目地址</a>',
             parse_mode="HTML",
         )
         return
@@ -1280,16 +1242,18 @@ def handle_message(message):
     if not msg:
         return
     LOG.info(f'收到消息: "{msg}"')
-    # 如果是 inline 形式的消息, 则提取 @ 前的字符串
-    inline_idx = msg.find(f"@{BOT_CFG.tg_bot_name}")
-    if inline_idx != -1:
-        msg = msg[:inline_idx]
+    msg = msg.lower().strip()
+    msgs = msg.split(" ", 1)  # 划分为两部分
+    # 消息命令
+    msg_cmd = msgs[0]
+    # 消息参数
+    msg_param = ""
+    if len(msgs) > 1:  # 有参数
+        msg_param = msgs[1].strip()
     # 处理消息
-    if msg == "/test":
-        test()
-    elif msg == "/help" or msg.find("/start") != -1:
+    if msg_cmd == "/help" or msg_cmd == "/start":
         bot_utils.send_msg(MSG_HELP)
-    elif msg == "/nice":
+    elif msg_cmd == "/nice":
         page = random.randint(1, JAVLIB_UTIL.MAX_RANK_PAGE)
         ids = BOT_CACHE_DB.get_cache(key=page, type=BotCacheDb.TYPE_JLIB_PAGE_NICE_AVS)
         if not ids:
@@ -1305,7 +1269,7 @@ def handle_message(message):
             else:
                 return
         bot_utils.get_av_by_id(id=random.choice(ids))
-    elif msg == "/new":
+    elif msg_cmd == "/new":
         page = random.randint(1, JAVLIB_UTIL.MAX_RANK_PAGE)
         ids = BOT_CACHE_DB.get_cache(key=page, type=BotCacheDb.TYPE_JLIB_PAGE_NEW_AVS)
         if not ids:
@@ -1321,35 +1285,38 @@ def handle_message(message):
             else:
                 return
         bot_utils.get_av_by_id(id=random.choice(ids))
-    elif msg == "/stars":
+    elif msg_cmd == "/stars":
         bot_utils.get_stars_record()
-    elif msg == "/avs":
+    elif msg_cmd == "/avs":
         bot_utils.get_avs_record()
-    elif msg == "/record":
+    elif msg_cmd == "/record":
         if os.path.exists(PATH_RECORD_FILE):
             BOT.send_document(
                 chat_id=BOT_CFG.tg_chat_id, document=types.InputFile(PATH_RECORD_FILE)
             )
         else:
             bot_utils.send_msg_fail_reason_op(reason="尚无收藏记录", op="获取收藏记录文件")
-    elif msg == "/rank":
+    elif msg_cmd == "/rank":
         bot_utils.get_top_stars(1)
-    elif msg.find("/star") != -1:
-        param = get_msg_param(msg)
-        if param:
-            bot_utils.send_msg(f"搜索演员: <code>{param}</code> ......")
-            bot_utils.search_star_by_name(param)
-    elif msg.find("/av") != -1:
-        param = get_msg_param(msg)
-        if param:
-            bot_utils.send_msg(f"搜索番号: <code>{param}</code> ......")
-            bot_utils.get_av_by_id(id=param, send_to_pikpak=True)
+    elif msg_cmd == "/star":
+        if msg_param != "":
+            bot_utils.send_msg(f"搜索演员: <code>{msg_param}</code> ......")
+            bot_utils.search_star_by_name(msg_param)
+    elif msg_cmd == "/av":
+        if msg_param:
+            bot_utils.send_msg(f"搜索番号: <code>{msg_param}</code> ......")
+            bot_utils.get_av_by_id(id=msg_param, send_to_pikpak=True)
     else:
         # ids = re.compile(r'^[A-Za-z]+[-][0-9]+$').findall(msg)
         ids = re.compile(r"[A-Za-z]+[-][0-9]+").findall(msg)
-        if not ids:
+        ids_fc2 = re.compile(r"fc2-[0-9]+").findall(msg)
+        ids = ids + ids_fc2
+        if not ids or len(ids) == 0:
             bot_utils.send_msg(
-                "消息似乎不存在符合<b>“字母-数字”</b>格式的番号, 请重试或使用“<code>/av</code> 番号”进行查找 =_="
+                """消息似乎不存在符合<b>“字母-数字”</b>格式的番号, 请重试或使用“<code>/av</code> 番号”进行查找 =_=
+
+"""
+                + MSG_HELP
             )
         else:
             ids = [id.lower() for id in ids]
@@ -1394,11 +1361,11 @@ def main():
     pyrogram_auth()
     try:
         bot_info = BOT.get_me()
-        LOG.info(f"connected to @{bot_info.username} (ID: {bot_info.id})")
+        LOG.info(f"连接到机器人: @{bot_info.username} (ID: {bot_info.id})")
     except Exception as e:
-        LOG.error(f"fail to connect to bot: {e}")
+        LOG.error(f"无法连接到机器人: {e}")
         return
-    set_command()
+    BOT.set_my_commands([types.BotCommand(cmd, BOT_CMDS[cmd]) for cmd in BOT_CMDS])
     BOT.infinity_polling()
 
 
