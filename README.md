@@ -1,12 +1,12 @@
 # tg-jav-bot
 
-**一个万能 Telegram 番号查询机器人。基于 Javbus，Sukebei，Avgle，Dmm，Javlibrary，维基百科，谷歌翻译等进行构建，集成了 Pikpak 作为磁链保存网盘。**
+**一个万能的查询&收藏机器人, 可用于查询和收藏演员和番号。基于 Javbus，Sukebei，Avgle，Dmm，Javlibrary，维基百科等进行构建，集成了 Pikpak 作为磁链保存网盘。**
 
 欢迎 issue 和 pr，也可通过邮箱 [akynazh@qq.com](mailto://akynazh@qq.com) 或电报 [@jackbryant286](https://t.me/jackbryant286) 联系我。
 
 从该项目分离出的一个爬虫子项目：[jvav](https://github.com/akynazh/jvav)，已经发布到 pypi，现在作为本项目的包依赖，同时可以服务于更多应用。
 
-一个基于本项目并提供更多功能（包括写备注, 在群组中使用, 导入记录等等）的机器人: [@tg-jav-bot-plus](https://t.me/zh_jav_plus_bot), 不会部署或者懒得部署的（部署过程还是挺麻烦的）可以考虑使用这个。如果你还是想自己部署，但过程中出现了问题不知道怎么解决，请先利用好搜索引擎和 AI 帮你解决问题，最后再私信或者提 issue 让别人帮你解决。
+一个基于本项目并提供更多功能（包括写备注, 在群组中使用, 导入记录等等）的机器人: [@tg-jav-bot-plus](https://t.me/zh_jav_plus_bot), 不会部署或者没有服务器的人可以考虑使用这个。（PS：本项目机器人只面向个人使用，群组版未开源，如需使用请联系作者）
 
 ## 功能简介
 
@@ -34,10 +34,6 @@
 - 支持通过 Dmm 随机获取女优高分 av - 2023/03/03
 - 支持通过 Redis 进行缓存 - 2023/03/17
 - 支持通过 Javbus 进行模糊搜索女优 - 2023/04/20
-
-**部分结果展示：**
-
-![部分结果展示](res.png)
 
 ## 使用教程
 
