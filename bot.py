@@ -39,6 +39,8 @@ PATH_RECORD_FILE = f"{PATH_ROOT}/record.json"
 PATH_SESSION_FILE = f"{PATH_ROOT}/my_account"
 # 配置文件位置
 PATH_CONFIG_FILE = f"{PATH_ROOT}/config.yaml"
+# 正则匹配 AV
+AV_PAT = re.compile(r"[a-z0-9]+[-_](?:ppv-)?[a-z0-9]+")
 # 帮助消息
 MSG_HELP = f"""发送给机器人一条含有番号的消息, 机器人会匹配并搜索消息中所有符合番号规则(大部分)的番号, 若匹配不到可通过 <code>/av</code> 命令查找。
 
@@ -201,11 +203,11 @@ class BotUtils:
             self.send_msg_code_op(code=502, op=op)
         return False
 
-    def create_btn_by_key(self, key_type: str, obj: dict) -> InlineKeyboardButton:
+    def create_btn_by_key(self, key_type: str, obj) -> InlineKeyboardButton:
         """根据按钮种类创建按钮
 
         :param str key_type: 按钮种类
-        :param dict obj: 数据对象
+        :param any obj: 数据对象
         :return InlineKeyboardButton: 按钮对象
         """
         if key_type == BotKey.KEY_GET_STAR_DETAIL_RECORD_BY_STAR_NAME_ID:
@@ -238,7 +240,7 @@ class BotUtils:
         :param int max_row_per_msg: 每条消息最多行数
         :param str key_type: 按钮种类
         :param str title: 消息标题
-        :param dict objs: 数据对象数组
+        :param list objs: 数据对象数组
         :param list extra_btns: 附加按钮列表, 二维数组, 对应于实际的按钮排布, 附加在每条消息尾部, 默认为空
         :param list page_btns: 分页块
         """
@@ -276,16 +278,16 @@ class BotUtils:
             self.send_msg(msg=title, markup=markup)
 
     def get_page_elements(
-        self, objs: dict, page: int, col: int, row: int, key_type: str
-    ) -> typing.Tuple[dict, list, str]:
-        """获取当前页对象字典, 分页按钮列表, 数量标题
+        self, objs: list, page: int, col: int, row: int, key_type: str
+    ) -> typing.Tuple[list, list, str]:
+        """获取当前页对象列表, 分页按钮列表, 数量标题
 
-        :param dict objs: 对象字典
+        :param list objs: 所有对象
         :param int page: 当前页
         :param int col: 当前页列数
         :param int row: 当前页行数
         :param str key_type: 按键类型
-        :return tuple[dict, list, str]: 当前页对象字典, 分页按钮列表, 数量标题
+        :return tuple[list, list, str]: 当前页对象列表, 分页按钮列表, 数量标题
         """
         # 记录总数
         record_count_total = len(objs)
@@ -1310,7 +1312,7 @@ def handle_message(message):
             bot_utils.send_msg(f"搜索番号: <code>{msg_param}</code> ......")
             bot_utils.get_av_by_id(id=msg_param, send_to_pikpak=True)
     else:
-        ids = re.compile(r"[a-z0-9]+[-_](?:ppv-)?[a-z0-9]+").findall(msg)
+        ids = AV_PAT.findall(msg)
         if not ids or len(ids) == 0:
             bot_utils.send_msg(
                 "消息似乎不存在符合规则的番号, 可尝试通过“<code>/av</code> 番号”进行查找, 通过 /help 命令可获得帮助 ~"
