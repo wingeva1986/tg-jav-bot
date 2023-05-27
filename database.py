@@ -285,7 +285,7 @@ class BotCacheDb:
         self.cache = None
         if self.use_cache == "1":
             try:
-                self.cache = redis.Redis(host=host, port=port,username="default",password="9f99f7ed128f19050dcc23cff8b34df6",ssl=True,ssl_cert_reqs=None)
+                self.cache = redis.Redis(host=host, port=port,db="jav",username="default",password="9f99f7ed128f19050dcc23cff8b34df6",ssl=True,ssl_cert_reqs=None)
                 self.cache.ping()
                 LOG.info(f"连接到 redis 服务: {host}:{port}")
             except Exception as e:
