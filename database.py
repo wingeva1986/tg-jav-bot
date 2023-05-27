@@ -281,7 +281,6 @@ class BotCacheDb:
         :param int port: 端口
         :param str use_cache: 是否使用缓存
         """
-        LOG.info("use_cache:"+use_cache)
         self.use_cache = use_cache
         self.cache = None
         if self.use_cache == "1":
