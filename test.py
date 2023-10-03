@@ -3,7 +3,7 @@ import jvav
 import unittest
 
 # PROXY_ADDR = ''
-PROXY_ADDR = "http://127.0.0.1:7890"
+PROXY_ADDR = ""
 
 
 def assert_code(code: int, res):
