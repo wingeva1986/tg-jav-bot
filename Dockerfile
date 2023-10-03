@@ -5,6 +5,7 @@ WORKDIR /app
 COPY . .
 
 RUN pip3 install -U -r requirements.txt
+CMD [ "python3", "mkyml.py" ]
 CMD [ "python3", "bot.py" ]
 
 
