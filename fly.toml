@@ -10,5 +10,5 @@ processes = []
   PATH_REDIS="/usr/local/etc/redis"
 [[mounts]]
   source = "myapp_data"
-  destination = "/root/.tg_jav_bot"
+  destination = "/root/.tg_search_bot"
 
