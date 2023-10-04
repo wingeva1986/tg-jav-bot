@@ -1,3 +1,4 @@
+Jvav
 TgCrypto
 langdetect==1.0.9
 lxml==4.9.2
@@ -5,4 +6,3 @@ Pyrogram==2.0.92
 pyTelegramBotAPI==4.14.0
 PyYAML==6.0.1
 redis==4.5.5
--e ./Jvav
