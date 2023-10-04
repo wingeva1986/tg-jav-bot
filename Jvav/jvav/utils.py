@@ -789,7 +789,7 @@ class DmmUtil(BaseUtil):
 
 
 class JavBusUtil(BaseUtil):
-    BASE_URL = "https://www.javbus.com"
+    BASE_URL = "https://dcors.deno.dev/www.javbus.com"
     BASE_URL_SEARCH_BY_STAR_NAME = f"{BASE_URL}/search"
     BASE_URL_SEARCH_BY_STAR_ID = f"{BASE_URL}/star"
     BASE_URL_SEARCH_STAR = f"{BASE_URL}/searchstar"
