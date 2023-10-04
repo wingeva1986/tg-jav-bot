@@ -789,7 +789,7 @@ class DmmUtil(BaseUtil):
 
 
 class JavBusUtil(BaseUtil):
-    BASE_URL = "https://cors.hiker.eu.org/www.javbus.com"
+    BASE_URL = "https://www.javbus.com"
     BASE_URL_SEARCH_BY_STAR_NAME = f"{BASE_URL}/search"
     BASE_URL_SEARCH_BY_STAR_ID = f"{BASE_URL}/star"
     BASE_URL_SEARCH_STAR = f"{BASE_URL}/searchstar"
@@ -802,15 +802,15 @@ class JavBusUtil(BaseUtil):
             'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
             'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6,zh-TW;q=0.5',
             'cache-control': 'max-age=0',
-            'sec-ch-ua': '"Microsoft Edge";v="117", "Not;A=Brand";v="8", "Chromium";v="117"',
+            'sec-ch-ua': '"Not_A Brand";v="99", "Google Chrome";v="109", "Chromium";v="109"',
             'sec-ch-ua-mobile': '?0',
-            'sec-ch-ua-platform': '"macOS"',
+            'sec-ch-ua-platform': '"Windows"',
             'sec-fetch-dest': 'document',
             'sec-fetch-mode': 'navigate',
             'sec-fetch-site': 'none',
             'sec-fetch-user': '?1',
             'upgrade-insecure-requests': '1',
-            'user-agent': self.ua_desktop(),
+            'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36",
         }
 
     def __init__(
