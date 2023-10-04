@@ -1,0 +1,7 @@
+## Include
+include README.md 
+include LICENSE
+include requirements.txt
+
+## Exclude
+recursive-exclude tests *
