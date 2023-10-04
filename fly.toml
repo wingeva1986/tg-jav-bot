@@ -1,13 +1,7 @@
 app="javbot"
 primary_region = "hkg"
 
-kill_signal = "SIGINT"
-kill_timeout = 5
-processes = []
-[env]
-  HOST_PATH_ROOT="~/.tg_search_bot"
-  PATH_ROOT="/root/.tg_search_bot"
-  PATH_REDIS="/usr/local/etc/redis"
+
 [[mounts]]
   source = "myapp_data"
   destination = "/root/.tg_search_bot"
