@@ -1045,7 +1045,7 @@ class JavBusUtil(BaseUtil):
         if code != 200:
             return code, None
         try:
-            self.log.error(resp)
+            self.log.error(resp.text)
             soup = self.get_soup(resp)
             star = soup.find(class_="avatar-box text-center")
             star_id = star["href"].split("star/")[1]
