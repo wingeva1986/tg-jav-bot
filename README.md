@@ -1,8 +1,33 @@
 # tg-search-bot
 
-**一个用于查询与收藏演员和影片的机器人, 可自动保存磁链到 Pikpak。**
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-4-orange.svg?style=flat-square)](#contributors-)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
 
-欢迎 issue 和 pr，可通过邮箱 [akynazh@qq.com](mailto://akynazh@qq.com) 或电报 [@jackbryant286](https://t.me/jackbryant286) 联系我。
+**一个可用于搜索各种影片磁链的电报机器人, 支持收藏, 导出记录, 自动保存磁链等操作, 可手动配置以屏蔽 NSFW 内容和代理上网。**
+
+机器人基于 Python3 构建, 支持 Docker 一键部署, 并通过 Redis 实现了缓存功能, 主要由 [akynazh](https://github.com/akynazh) 完成开发, 并结合社区力量进行了改进和优化, 感谢以下协作者:
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://akynazh.site"><img src="https://avatars.githubusercontent.com/u/78672905?v=4?s=100" width="100px;" alt="Jack Bryant"/><br /><sub><b>Jack Bryant</b></sub></a><br /><a href="#maintenance-akynazh" title="Maintenance">🚧</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/z-hhh"><img src="https://avatars.githubusercontent.com/u/8455958?v=4?s=100" width="100px;" alt="zhhh"/><br /><sub><b>zhhh</b></sub></a><br /><a href="https://github.com/akynazh/tg-search-bot/commits?author=z-hhh" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://allcontributors.org"><img src="https://avatars.githubusercontent.com/u/46410174?v=4?s=100" width="100px;" alt="All Contributors"/><br /><sub><b>All Contributors</b></sub></a><br /><a href="https://github.com/akynazh/tg-search-bot/commits?author=all-contributors" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/JackBryant286"><img src="https://avatars.githubusercontent.com/u/113345781?v=4?s=100" width="100px;" alt="Jack Bryant"/><br /><sub><b>Julia</b></sub></a><br /><a href="https://github.com/akynazh/tg-search-bot/commits?author=JackBryant286" title="Code">💻</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+如果你也想为社区贡献自己的一份力量, 请查看 [TODO](https://github.com/akynazh/tg-search-bot#todo), 欢迎 issue 和 pr。
 
 ## 功能简介
 
@@ -23,7 +48,7 @@
 - 支持搜索演员 - 2023/02/18
 - 支持通过 redis 进行缓存 - 2023/03/17
 
-## TODO 
+## TODO
 
 - 英文版本
 
@@ -37,30 +62,32 @@
 
 ```yaml
 # TG 对话 ID
-tg_chat_id: 
+tg_chat_id:
 # TG 机器人 Token
-tg_bot_token: 
+tg_bot_token:
 # 全局是否使用代理 1 是 | 0 否
-use_proxy: 
+use_proxy:
 # 访问 dmm 时是否使用代理，如果全局使用代理，则忽略该字段 1 是 | 0 否
-use_proxy_dmm: 
+use_proxy_dmm:
 # 代理服务器地址，如果不使用代理，则忽略该字段
-proxy_addr: 
+proxy_addr:
 # 是否使用 Pikpak 自动发送功能 1 是 | 0 否
-use_pikpak: 
+use_pikpak:
 # 配置 TG API，如果不使用 Pikpak 自动发送功能，则忽略以下两个字段，可在这里申请 API: https://my.telegram.org/apps
-tg_api_id: 
-tg_api_hash: 
+tg_api_id:
+tg_api_hash:
 # 是否使用缓存 1 是 | 0 否
-use_cache: 
+use_cache:
 # redis 地址，如果不使用缓存，则忽略以下两个字段
-redis_host: 
-redis_port: 
+redis_host:
+redis_port:
+# nsfw 1 是 | 0 否
+enable_nsfw: 0
 ```
 
 注：配置，记录和日志等文件存放在 `~/.tg_search_bot` 目录下。
 
-如需使用 Pikpak 自动发送功能，需要先手动授权 [Pikpak 官方机器人](https://t.me/PikPak6_Bot)，然后在初次运行机器人时进行登录操作。
+如需使用 Pikpak 自动发送功能，需要先手动授权 [Pikpak 官方机器人](https://t.me/PikPak6_Bot)，然后在初次运行机器人时进行登录操作。(我的 Pikpak 邀请码: 99492001, 输入可得会员)
 
 ### 运行机器人
 
@@ -75,14 +102,4 @@ docker-compose up -d
 ```
 # Python >=3.10, 如果使用缓存的话需先开启 redis 服务
 pip install -r requirements.txt && python3 bot.py
-```
-
-### 更新机器人
-
-首先拉取最新代码。
-
-接着，如果是使用 docker 进行部署，则重新构建镜像并运行即可，参考命令：
-
-```
-docker-compose down && docker-compose up -d --build
 ```
