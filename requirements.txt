@@ -1,8 +1,8 @@
--e ./Jvav
+Jvav==2.2.1
 langdetect==1.0.9
 Pyrogram==2.0.92
 pyTelegramBotAPI==4.14.0
 PyYAML==6.0.1
 redis==4.5.5
 Requests==2.31.0
-
+TgCrypto
